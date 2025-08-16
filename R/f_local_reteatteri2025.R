@@ -70,10 +70,10 @@ calculateProportionalPoints <- function(voteweight = NA, voterank =NA) {
 # ...............................................
 # cleans google sheet everytime - this can be optimized later --------------------
 cleanGoogleSheet <- function(restaurants0 = restaurantsheet) {
-
+  
   restaurants1 <- changeHost(data = restaurants0)
   restaurants2 <- hasVisited(data = restaurants1)
-
+  
   restaurants2 <- myf(arg = restaurants2$JUm, "JU_voteweight", da4 = restaurants2)
   restaurants2 <- myf(restaurants2$MAm, "MA_voteweight", da4 = restaurants2)
   restaurants2 <- myf(restaurants2$LAm, "LA_voteweight", da4 = restaurants2)
@@ -113,7 +113,7 @@ cleanGoogleSheet <- function(restaurants0 = restaurantsheet) {
 # ...............................................
 # time series
 # ...............................................
-fig_cum_avg <- function(data = NULL, windowsize = 0) {
+fig_cum_avg <- function(data = NULL, windowsize = 0, matriximage = 0) {
   
   
   if (windowsize == 0) {
@@ -126,7 +126,7 @@ fig_cum_avg <- function(data = NULL, windowsize = 0) {
       ) |>
       dplyr::ungroup()
     
-  
+    
     # Step 2: Plot with ggplot using viridis palette
     ggplot(ts_host_cumavg, aes(x = rundi, y = cumavg_avg, color = host)) +
       geom_line(size = 1.2) +
@@ -145,8 +145,8 @@ fig_cum_avg <- function(data = NULL, windowsize = 0) {
         legend.text = element_text(size = 10)
       )
     
-  
-  
+    
+    
   } else if (windowsize == -1)  {
     
     ggplot(data, aes(x = host, y = avg, fill = host)) +
@@ -182,32 +182,102 @@ fig_cum_avg <- function(data = NULL, windowsize = 0) {
       ) |>
       ungroup()
     
- 
     
-    # Define a palette with 8 distinct colors
-    palette8 <- brewer.pal(n = 8, name = "Set2")
     
-    # Plot with ggplot
-    ggplot(ts_host_ma, aes(x = rundi, y = ma_totalPoints, color = host)) +
-      geom_line(size = 1.2) +
-      geom_point(size = 2) +
-      scale_color_manual(values = palette8) +
-      labs(
-        title = paste0(windowsize,"-Round Moving Average of Total Points per Host"),
-        x = "Round (rundi)",
-        y = "Moving Average of Total Points",
-        color = "Host"
-      ) +
-      theme_minimal() +
-      theme(
-        legend.position = "bottom",
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 10)
-      )
-    
+    if (matriximage > 0) {
+      
+      
+      if (matriximage == 1) {
+        
+        ts_ranked <- ts_host_ma %>%
+          group_by(rundi) %>%
+          mutate(rank = rank(-ma_totalPoints, ties.method = "min")) %>%  # higher points = better rank
+          ungroup()
+        
+        
+        rank_matrix <- ts_ranked %>%
+          select(rundi, host, rank) %>%
+          pivot_wider(names_from = host, values_from = rank)
+        
+        ggplot(ts_ranked, aes(x = rundi, y = host, fill = rank)) +
+          geom_tile(color = "white") +
+          scale_fill_gradient(low = "gold", high = "red") + # better rank = brighter color
+          labs(
+            title = "Host Rankings per Round",
+            x = "Round (rundi)",
+            y = "Host",
+            fill = "Rank"
+          ) +
+          theme_minimal() +
+          theme(
+            axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom"
+          )
+      } else {
+        
+        
+        ts_ranked <- ts_host_ma %>%
+          group_by(rundi) %>%
+          mutate(rank = rank(avg, ties.method = "min")) %>%
+          ungroup()
+        
+        ts_ranked <- ts_ranked %>%
+          group_by(rundi) %>%
+          arrange(rank) %>%  # ascending rank (1 = top)
+          mutate(host_ordered = factor(host, levels = host)) %>%
+          ungroup()
+        
+        
+        ggplot(ts_ranked, aes(x = rundi, y = host_ordered, fill = ma_totalPoints)) +
+          geom_tile(color = "white") +
+          geom_text(aes(label = rank), color = "black") +  # show rank number inside tile
+          scale_fill_gradient(
+            low = "red",
+            high = "green",
+            limits = c(0, 100),
+            guide = "none"  # hide the fill legend  # fixes the scale from 0 to 100
+          ) +
+          labs(
+            title = "Host Rankings per Round",
+            x = "Round (rundi)",
+            y = "Host",
+            fill = "Rank"
+          ) +
+          theme_minimal() +
+          theme(
+            axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom"
+          )
+      }
+      
+    } else {
+      
+      
+      
+      # Define a palette with 8 distinct colors
+      palette8 <- brewer.pal(n = 8, name = "Set2")
+      
+      # Plot with ggplot
+      ggplot(ts_host_ma, aes(x = rundi, y = ma_totalPoints, color = host)) +
+        geom_line(size = 1.2) +
+        geom_point(size = 2) +
+        scale_color_manual(values = palette8) +
+        labs(
+          title = paste0(windowsize,"-Round Moving Average of Total Points per Host"),
+          x = "Round (rundi)",
+          y = "Moving Average of Total Points",
+          color = "Host"
+        ) +
+        theme_minimal() +
+        theme(
+          legend.position = "bottom",
+          legend.title = element_text(size = 12),
+          legend.text = element_text(size = 10)
+        )
+      
+    }
   }
   
-
 }
 # ...............................................
 
@@ -247,10 +317,10 @@ fig_rank_plots <- function(data = NULL, ranktype = 0) {
       theme_minimal() +
       theme(legend.position = "bottom")
     
-
+    
   } else if (ranktype == 1) {
     
-      # Step 1: Add flags for grouped ranks
+    # Step 1: Add flags for grouped ranks
     da1_grouped <- data |>
       mutate(
         rank1_flag = ifelse(rank == 1, 1, 0),

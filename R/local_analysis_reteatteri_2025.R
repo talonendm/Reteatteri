@@ -48,9 +48,14 @@ da0$totalrank[da0$totalPoints == 0 ] <- NA
 # voting started at round 10 ------------
 # ...............................................
 da1 <- da0 |> dplyr::filter(rundi>=10) |> dplyr::arrange(id)
-fig_cum_avg(data = da1, windowsize = 5)
+fig_cum_avg(data = da1, windowsize = 8)
 fig_cum_avg(data = da1, windowsize = 0)
 fig_cum_avg(data = da1, windowsize = -1)
 fig_rank_plots(data = da1, ranktype = 0)
 fig_rank_plots(data = da1, ranktype = 1)
+
+
+fig_cum_avg(data = da1, windowsize = 3, matriximage = 1)
+fig_cum_avg(data = da1, windowsize = 3, matriximage = 2)
+fig_cum_avg(data = da1, windowsize = 1, matriximage = 2)
 # ...............................................
