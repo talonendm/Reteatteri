@@ -10,10 +10,16 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="Rfig/ranking250816.png" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>">
-  <!-- Tailwind CSS CDN for quick styling -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #rankingImg {
+      transition: opacity 0.5s ease-in-out;
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
+
   <!-- Header -->
   <header class="sticky top-0 z-50 backdrop-blur bg-white/70 border-b border-slate-200">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -25,8 +31,6 @@
         <a href="#about" class="hover:text-indigo-600">About</a>
         <a href="#ranking" class="hover:text-indigo-600">Ranking</a>
         <a href="#events" class="hover:text-indigo-600">Events</a>
-        <a href="https://safka.shinyapps.io/restaurants/" target="_blank" class="hover:text-indigo-600">App</a>
-        <a href="https://talonendm.github.io/Reteatteri/slides/" class="hover:text-indigo-600">Slides</a>
         <a href="#contact" class="hover:text-indigo-600">Contact</a>
       </nav>
     </div>
@@ -41,12 +45,15 @@
         <div class="mt-6 flex gap-3">
           <a href="#ranking" class="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-2.5 text-white font-medium shadow-sm hover:bg-indigo-700">See latest ranking</a>
           <a href="#about" class="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2.5 text-slate-900 font-medium shadow-sm ring-1 ring-slate-200 hover:bg-slate-50">Learn more</a>
+          <a href="https://safka.shinyapps.io/restaurants/" class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-5 py-2.5 text-white font-medium shadow-sm hover:bg-green-700">Open app</a>
+          <a href="https://talonendm.github.io/Reteatteri/slides/#/slide-1" class="inline-flex items-center justify-center rounded-2xl bg-orange-600 px-5 py-2.5 text-white font-medium shadow-sm hover:bg-orange-700">Old slides</a>
         </div>
       </div>
       <div class="relative">
         <div class="absolute -inset-4 -z-10 rounded-3xl bg-indigo-200/40 blur-2xl"></div>
         <figure class="rounded-3xl overflow-hidden ring-1 ring-slate-200 shadow">
-          <img src="Rfig/ranking250816.png" alt="Latest ranking chart" class="w-full h-auto" loading="eager" />
+          <img src="Rfig/ranking250816.png" alt="Latest ranking chart" class="w-full h-auto" loading="eager" id="rankingImg"/>
+          <button id="toggleBtn" class="absolute bottom-2 right-2 px-3 py-1 bg-white/80 rounded-xl shadow text-sm">Pause</button>
         </figure>
       </div>
     </div>
@@ -57,7 +64,7 @@
     <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8 items-start">
       <div class="md:col-span-2">
         <h2 class="text-2xl font-semibold">About</h2>
-        <p class="mt-3 text-slate-700">re:teatteri is a collective of culinarists who gather for dining rounds (rundi), taking turns as hosts and sharing scores along the way. At its heart, it’s about savoring food, friendship, and the pleasure of the table.</p>
+        <p class="mt-3 text-slate-700">re:teatteri is a small collective keeping track of dining rounds (<em>rundi</em>), hosts, and scores. We use R to crunch the numbers and share tidy summaries for our crew.</p>
       </div>
       <div class="bg-white rounded-2xl p-5 ring-1 ring-slate-200 shadow-sm">
         <h3 class="font-medium">Project</h3>
@@ -70,21 +77,18 @@
     </div>
   </section>
 
-  <!-- Ranking Figure -->
+  <!-- Ranking / Animation -->
   <section id="ranking" class="py-14 bg-white">
     <div class="max-w-6xl mx-auto px-4">
-      <div class="flex items-end justify-between mb-4">
-        <h2 class="text-2xl font-semibold">Latest ranking</h2>
-        <span class="text-sm text-slate-500">Figure: <code>Rfig/ranking250816.png</code></span>
-      </div>
-      <figure class="rounded-3xl overflow-hidden ring-1 ring-slate-200 shadow">
-        <img src="Rfig/ranking250816.png" alt="Ranking figure generated on 25-08-16" class="w-full h-auto" loading="lazy" />
-        <figcaption class="p-3 text-sm text-slate-600">Cumulative/relative ranks based on the latest data pull. Generated in R.</figcaption>
+      <h2 class="text-2xl font-semibold mb-4">Latest ranking (animated)</h2>
+      <figure class="rounded-3xl overflow-hidden ring-1 ring-slate-200 shadow relative">
+        <img src="Rfig/ranking250816.png" alt="Ranking figure" class="w-full h-auto" id="rankingImgAnim" />
+        <button id="toggleBtnAnim" class="absolute bottom-2 right-2 px-3 py-1 bg-white/80 rounded-xl shadow text-sm">Pause</button>
       </figure>
     </div>
   </section>
 
-  <!-- Events / Notes placeholder -->
+  <!-- Events / Notes -->
   <section id="events" class="py-14">
     <div class="max-w-6xl mx-auto px-4">
       <h2 class="text-2xl font-semibold">Notes &amp; Events</h2>
@@ -98,14 +102,14 @@
           <p class="mt-2 text-sm text-slate-700">Run your R script that writes <code>Rfig/rankingYYYYMMDD.png</code> and replace the image path here or symlink it to <code>Rfig/ranking250816.png</code>.</p>
         </article>
         <article class="bg-white rounded-2xl p-5 ring-1 ring-slate-200 shadow-sm">
-          <h3 class="font-medium">New Round</h3>
-          <p class="mt-2 text-sm text-slate-700">Starting 19th of August 2025.</p>
+          <h3 class="font-medium">Contributing</h3>
+          <p class="mt-2 text-sm text-slate-700">Open a PR in the Git repo. Keep images small (&lt; 600 KB) for fast loading.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- Contact / Footer -->
+  <!-- Footer -->
   <footer id="contact" class="py-10 border-t border-slate-200 bg-white">
     <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
       <p class="text-sm text-slate-600">© <span id="y"></span> re:teatteri</p>
@@ -114,8 +118,46 @@
   </footer>
 
   <script>
-    // set year
+    // Set year
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Animated ranking figure
+    const imgEl = document.getElementById('rankingImgAnim');
+    const btnEl = document.getElementById('toggleBtnAnim');
+    let images = ['Rfig/ranking250816.png']; // fallback
+    let index = 0;
+    let paused = false;
+
+    fetch('Rfig/')
+      .then(res => res.text())
+      .then(text => {
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, 'text/html');
+        const links = Array.from(htmlDoc.querySelectorAll('a'))
+          .map(a => a.getAttribute('href'))
+          .filter(f => f.match(/\.(png|jpg|jpeg|gif)$/i));
+        if (links.length > 0) images = links.map(f => 'Rfig/' + f);
+      })
+      .catch(err => console.log('Folder fetch failed, using default image.'));
+
+    function nextImage() {
+      if (!paused && images.length > 1) {
+        index = (index + 1) % images.length;
+        imgEl.style.opacity = 0;
+        setTimeout(() => {
+          imgEl.src = images[index];
+          imgEl.style.opacity = 1;
+        }, 500);
+      }
+    }
+
+    const interval = setInterval(nextImage, 3000);
+
+    btnEl.addEventListener('click', () => {
+      paused = !paused;
+      btnEl.textContent = paused ? 'Play' : 'Pause';
+    });
   </script>
+
 </body>
 </html>
