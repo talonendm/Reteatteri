@@ -10,7 +10,8 @@ changeHost <- function(data) {
     "mikko"  = "MI",
     "jussi"  = "JU",
     "kari"   = "KA",
-    "lauri"  = "LA", "lyry" = "LA",
+    "lauri"  = "LA", 
+    "lyry" = "LA",
     "rude"   = "MA",
     "salkki" = "HE",
     "grande" = "GR"
@@ -19,7 +20,7 @@ changeHost <- function(data) {
   # Normalize all host names to lowercase before mapping
   data$Isäntä <- tolower(data$Isäntä)
   data$Isäntä <- dplyr::recode(data$Isäntä, !!!replacements, .default = data$Isäntä)
-  
+  data$Isäntä <- toupper(data$Isäntä)
   return(data)
 }
 
@@ -90,7 +91,7 @@ cleanGoogleSheet <- function(restaurants0 = restaurantsheet) {
   restaurants2$JA <- calculateProportionalPoints(voteweight = restaurants2$JA_voteweight, voterank = restaurants2$JAs)
   restaurants2$MI <- calculateProportionalPoints(voteweight = restaurants2$MI_voteweight, voterank = restaurants2$MIs)
   restaurants2$HE <- calculateProportionalPoints(voteweight = restaurants2$HE_voteweight, voterank = restaurants2$HEs)
-  restaurants2$GR <- calculateProportionalPoints(voteweight = restaurants2$HE_voteweight, voterank = restaurants2$GRs)
+  restaurants2$GR <- calculateProportionalPoints(voteweight = restaurants2$GR_voteweight, voterank = restaurants2$GRs)
   
   restaurants2$avg <- base::rowMeans(restaurants2[, c("JU", "MA", "LA" ,"KA" ,"JA" ,"MI" ,"HE", "GR")], na.rm = TRUE)
   
@@ -162,11 +163,7 @@ fig_cum_avg <- function(data = NULL, windowsize = 0, matriximage = 0) {
       theme(
         legend.position = "none"  # optional, since host is on x-axis
       )
-    
   }else {
-    
-    
-    
     ts_host_ma <- data |>
       group_by(host) |>
       arrange(rundi) |>
@@ -214,8 +211,6 @@ fig_cum_avg <- function(data = NULL, windowsize = 0, matriximage = 0) {
             legend.position = "bottom"
           )
       } else {
-        
-        
         ts_ranked <- ts_host_ma %>%
           group_by(rundi) %>%
           mutate(rank = rank(avg, ties.method = "min")) %>%
@@ -252,8 +247,6 @@ fig_cum_avg <- function(data = NULL, windowsize = 0, matriximage = 0) {
       
     } else {
       
-      
-      
       # Define a palette with 8 distinct colors
       palette8 <- brewer.pal(n = 8, name = "Set2")
       
@@ -274,13 +267,12 @@ fig_cum_avg <- function(data = NULL, windowsize = 0, matriximage = 0) {
           legend.title = element_text(size = 12),
           legend.text = element_text(size = 10)
         )
-      
     }
   }
-  
 }
 # ...............................................
 
+# ...............................................
 fig_rank_plots <- function(data = NULL, ranktype = 0) {
   if (ranktype == 0) {
     # Filter only ranks 1-8 and compute cumulative count per host and rank
@@ -316,10 +308,7 @@ fig_rank_plots <- function(data = NULL, ranktype = 0) {
       ) +
       theme_minimal() +
       theme(legend.position = "bottom")
-    
-    
   } else if (ranktype == 1) {
-    
     # Step 1: Add flags for grouped ranks
     da1_grouped <- data |>
       mutate(
@@ -344,7 +333,7 @@ fig_rank_plots <- function(data = NULL, ranktype = 0) {
       pivot_longer(cols = starts_with("cum_rank"), 
                    names_to = "rank_group", 
                    values_to = "cum_count") |>
-      mutate(rank_group = recode(rank_group, 
+      mutate(rank_group = dplyr::recode(rank_group, 
                                  "cum_rank1" = "Rank 1",
                                  "cum_rank2" = "Rank 2",
                                  "cum_rank3" = "Rank 3",
@@ -377,6 +366,36 @@ fig_rank_plots <- function(data = NULL, ranktype = 0) {
         panel.grid.major.y = element_line(color = "gray80"),
         panel.grid.major.x = element_line(color = "gray80")
       )
-    
   }
 } 
+# ...............................................
+
+# ...............................................
+fig_friend_plot <- function(data = NULL) {
+  data.host.g <- data |> 
+    dplyr::select("Isäntä", "JU", "MA", "LA" ,"KA" ,"JA" ,"MI" ,"HE", "GR") |> 
+    dplyr::group_by(Isäntä) |> 
+    dplyr::reframe(
+      avg_JU = round(mean(JU, na.rm = TRUE)),
+      avg_MA = round(mean(MA, na.rm = TRUE)),
+      avg_LA = round(mean(LA, na.rm = TRUE)),
+      avg_KA = round(mean(KA, na.rm = TRUE)),
+      avg_JA = round(mean(JA, na.rm = TRUE)),
+      avg_MI = round(mean(MI, na.rm = TRUE)),
+      avg_HE = round(mean(HE, na.rm = TRUE)),
+      avg_GR = round(mean(GR, na.rm = TRUE))
+    )
+  
+  data.host.g |>
+    gt::gt() |>
+    gt::tab_header(title = "Kuka suosii ketä") |>
+    gt::sub_missing(columns = everything(), missing_text = "") |>  # hide NaN / NA
+    gt::data_color(
+      columns = where(is.numeric),   # apply only to numeric columns
+      colors = scales::col_bin(
+        bins = c(-Inf, 46, 56, Inf),
+        palette = c("darkgreen", "white", "red")
+      )
+    )
+}
+# ...............................................

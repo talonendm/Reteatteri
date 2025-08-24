@@ -9,7 +9,12 @@ library(readr)
 library(dplyr)
 library(zoo)
 library(RColorBrewer)
+library(data.table)
 library(viridis)  # for colorblind-friendly palettes
+library(tidyr)
+library(ggplot2)
+# install.packages('gt')
+library(gt)
 # ...............................................
 source("C:/Users/talon/git/Reteatteri/R/f_local_reteatteri2025.R")
 # gsheets is used: install.packages("googlesheets4") # library(googlesheets4)
@@ -43,7 +48,6 @@ da0$totalrank <- c(1:dim(da0)[1])
 da0$totalrank[da0$totalPoints == 0 ] <- NA
 # ...............................................
 
-
 # ...............................................
 # voting started at round 10 ------------
 # ...............................................
@@ -54,8 +58,19 @@ fig_cum_avg(data = da1, windowsize = -1)
 fig_rank_plots(data = da1, ranktype = 0)
 fig_rank_plots(data = da1, ranktype = 1)
 
+da1.r <- da1 |> dplyr::group_by(host, rank) |> dplyr::reframe(n = n())
+da1.r2 <- da1.r |>  pivot_wider(names_from = rank, values_from = n)
+da1.r2 <- da1.r2 |> dplyr::select(host, '1','2','3','4','5','6','7','8')
+da1.r2[is.na(da1.r2)] <- 0
+# t(da1.r2)
+da1.r2 |> gt::gt() |> gt::tab_header("Sijoitukset")
 
 fig_cum_avg(data = da1, windowsize = 3, matriximage = 1)
 fig_cum_avg(data = da1, windowsize = 3, matriximage = 2)
 fig_cum_avg(data = da1, windowsize = 1, matriximage = 2)
 # ...............................................
+fig_friend_plot(data = data)
+
+
+
+
